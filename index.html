@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wellness Tracker — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   WELLNESS TRACKER — Shared Styles
+   Palette: Sage Green + Pastel Yellow
+═══════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --sage:          #7aab8a;
+  --sage-deep:     #4e8060;
+  --sage-pale:     #d6ead9;
+  --sage-faint:    #eef6f0;
+  --yellow:        #f5e97a;
+  --yellow-deep:   #d4c244;
+  --yellow-pale:   #fdf8d0;
+  --yellow-mid:    #f7ef9e;
+  --stone:         #6a7060;
+  --ink:           #1c2018;
+  --ink-soft:      #363d2e;
+  --cream:         #f8f9f0;
+  --white:         #ffffff;
+  --line:          #cdd8c4;
+  --line-sage:     #b2ccb8;
+  --danger:        #d97575;
+  --radius:        10px;
+  --radius-lg:     16px;
+  --shadow-sm:     0 2px 12px rgba(78,128,96,0.08);
+  --shadow-md:     0 6px 24px rgba(78,128,96,0.13);
+  --shadow-lg:     0 12px 40px rgba(78,128,96,0.18);
+  --transition:    0.22s ease;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  color: var(--ink);
+  background: var(--cream);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 70% 40% at 5% 0%, rgba(122,171,138,0.12) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 50% at 95% 100%, rgba(245,233,122,0.15) 0%, transparent 65%);
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(248,249,240,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.nav-brand-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--sage-deep), var(--sage));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem;
+}
+
+.nav-brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link {
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--stone);
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: background var(--transition), color var(--transition);
+}
+
+.nav-link:hover { background: var(--sage-faint); color: var(--sage-deep); }
+.nav-link.active { background: var(--sage-pale); color: var(--sage-deep); font-weight: 500; }
+
+.nav-btn {
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  background: var(--sage-deep);
+  padding: 7px 18px;
+  border-radius: 7px;
+  transition: background var(--transition), box-shadow var(--transition);
+  margin-left: 8px;
+}
+
+.nav-btn:hover { background: var(--sage); box-shadow: var(--shadow-sm); }
+
+/* ── PAGE WRAPPER ── */
+.page-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ── SECTION TITLES ── */
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  font-size: 1.4rem;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  margin-bottom: 20px;
+}
+
+.section-title span {
+  color: var(--sage-deep);
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition);
+  overflow: hidden;
+}
+
+.card:hover { box-shadow: var(--shadow-md); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px 16px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(to right, var(--sage-faint), var(--white));
+}
+
+.card-icon {
+  width: 34px; height: 34px;
+  background: var(--sage-pale);
+  border: 1px solid var(--line-sage);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.card-tag {
+  margin-left: auto;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stone);
+  background: var(--yellow-pale);
+  border: 1px solid rgba(212,194,68,0.3);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+.card-body { padding: 24px; }
+
+/* ── STAT TILES ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-tile {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.stat-tile:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+.stat-tile-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+.stat-tile-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.stat-tile-value span {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: var(--stone);
+  margin-left: 3px;
+}
+
+.stat-tile-sub {
+  font-size: 0.68rem;
+  color: var(--stone);
+}
+
+.stat-tile.accent-sage { border-top: 3px solid var(--sage-deep); }
+.stat-tile.accent-yellow { border-top: 3px solid var(--yellow-deep); }
+.stat-tile.accent-green { border-top: 3px solid var(--sage); }
+
+/* ── CHART CARDS ── */
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.chart-grid.single { grid-template-columns: 1fr; }
+.chart-grid.triple { grid-template-columns: repeat(3, 1fr); }
+
+.chart-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--transition);
+}
+
+.chart-card:hover { box-shadow: var(--shadow-md); }
+
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chart-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.chart-card-period {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  background: var(--sage-faint);
+  border-radius: 12px;
+  padding: 3px 10px;
+}
+
+.chart-card-body {
+  padding: 20px;
+  position: relative;
+}
+
+canvas { display: block; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: 9px 20px;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--sage-deep);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(78,128,96,0.25);
+}
+
+.btn-primary:hover {
+  background: var(--sage);
+  box-shadow: 0 4px 14px rgba(78,128,96,0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--yellow-pale);
+  color: var(--ink-soft);
+  border: 1px solid rgba(212,194,68,0.4);
+}
+
+.btn-secondary:hover { background: var(--yellow-mid); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--stone);
+  border: 1px solid var(--line);
+}
+
+.btn-ghost:hover { background: var(--sage-faint); color: var(--sage-deep); border-color: var(--line-sage); }
+
+/* ── STREAK BADGE ── */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--sage-deep), var(--sage));
+  color: var(--white);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 14px rgba(78,128,96,0.28);
+}
+
+.streak-badge .streak-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+/* ── DATE PICKER ROW ── */
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.date-nav-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+.date-nav input[type="date"] {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: var(--ink);
+  padding: 8px 14px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.date-nav input[type="date"]:focus { border-color: var(--sage); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.anim-1 { animation: fadeUp 0.5s 0.05s ease both; }
+.anim-2 { animation: fadeUp 0.5s 0.12s ease both; }
+.anim-3 { animation: fadeUp 0.5s 0.19s ease both; }
+.anim-4 { animation: fadeUp 0.5s 0.26s ease both; }
+.anim-5 { animation: fadeUp 0.5s 0.33s ease both; }
+.anim-6 { animation: fadeUp 0.5s 0.40s ease both; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--ink);
+  color: var(--white);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: none;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--sage-deep); }
+.toast.error { background: var(--danger); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  gap: 14px;
+}
+
+.empty-state-icon { font-size: 2.8rem; opacity: 0.5; }
+.empty-state-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--ink); }
+.empty-state-text { font-size: 0.8rem; color: var(--stone); max-width: 320px; line-height: 1.6; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .page-wrap { padding: 24px 16px 60px; }
+  .chart-grid { grid-template-columns: 1fr; }
+  .chart-grid.triple { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .nav-links .nav-link { display: none; }
+}
+
+@media print {
+  nav { display: none; }
+  body { background: white; }
+  .card, .chart-card, .stat-tile { box-shadow: none; border: 1px solid #ddd; }
+}
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, var(--sage-deep) 0%, #3a6b4e 100%);
+  border-radius: var(--radius-lg);
+  padding: 40px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,233,122,0.18) 0%, transparent 70%);
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -50px; left: 20%;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(214,234,217,0.12) 0%, transparent 70%);
+}
+.hero-left { position: relative; z-index: 1; }
+.hero-date { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sage-pale); margin-bottom: 8px; }
+.hero-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #fff; line-height: 1.1; margin-bottom: 10px; }
+.hero-subtitle { font-size: 0.8rem; color: rgba(214,234,217,0.85); letter-spacing: 0.04em; max-width: 380px; line-height: 1.6; }
+.hero-right { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; position: relative; z-index: 1; flex-shrink: 0; }
+
+.period-toggle { display: inline-flex; background: var(--sage-faint); border: 1px solid var(--line-sage); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 20px; }
+.period-btn { border: none; background: transparent; color: var(--stone); font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 400; letter-spacing: 0.08em; padding: 6px 16px; border-radius: 7px; cursor: pointer; transition: all 0.2s; }
+.period-btn.active { background: var(--white); color: var(--sage-deep); font-weight: 500; box-shadow: 0 1px 4px rgba(78,128,96,0.15); }
+.period-btn:hover:not(.active) { background: var(--sage-pale); color: var(--sage-deep); }
+
+.today-banner { background: var(--yellow-pale); border: 1px solid rgba(212,194,68,0.4); border-radius: var(--radius-lg); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+.today-banner-left { display: flex; align-items: center; gap: 14px; }
+.today-dot { width: 10px; height: 10px; background: var(--sage-deep); border-radius: 50%; box-shadow: 0 0 0 3px rgba(78,128,96,0.2); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(78,128,96,0.2); } 50% { box-shadow: 0 0 0 6px rgba(78,128,96,0.08); } }
+.today-text { font-size: 0.82rem; color: var(--ink-soft); }
+.today-text strong { font-weight: 600; color: var(--sage-deep); }
+
+.chart-card.full { grid-column: 1 / -1; }
+.weekly-section { margin-top: 32px; }
+
+@media (max-width: 680px) {
+  .hero { flex-direction: column; align-items: flex-start; padding: 28px 24px; }
+  .hero-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+  .hero-title { font-size: 1.7rem; }
+}
+</style>
+</head><body>
+
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">🌿</div>
+    <span class="nav-brand-name">Wellness Tracker</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active">Dashboard</a>
+    <a href="log.html" class="nav-link">Daily Log</a>
+    <button class="btn btn-ghost" style="font-size:0.75rem;padding:6px 14px;" onclick="handleExport()">⬇ Export</button>
+    <label class="btn btn-ghost" style="font-size:0.75rem;padding:6px 14px;cursor:pointer;">
+      ⬆ Import
+      <input type="file" accept=".json" style="display:none" onchange="handleImport(this)">
+    </label>
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page-wrap">
+
+  <!-- Hero -->
+  <div class="hero anim-1">
+    <div class="hero-left">
+      <div class="hero-date" id="heroDate"></div>
+      <div class="hero-title">Good day 🌱</div>
+      <div class="hero-subtitle">Here's your wellness snapshot. Stay consistent — every small step counts.</div>
+    </div>
+    <div class="hero-right">
+      <div class="streak-badge">
+        <span>🔥</span>
+        <span class="streak-num" id="streakNum">0</span>
+        <span style="font-size:0.72rem;opacity:0.85;">day streak</span>
+      </div>
+      <a href="log.html" class="btn btn-secondary">+ Log Today</a>
+    </div>
+  </div>
+
+  <!-- Today banner -->
+  <div class="today-banner anim-2" id="todayBanner" style="display:none;">
+    <div class="today-banner-left">
+      <div class="today-dot"></div>
+      <div class="today-text">Today's log is <strong>complete</strong>. Great job keeping up!</div>
+    </div>
+    <a href="log.html" class="btn btn-ghost" style="font-size:0.75rem;padding:6px 14px;">Edit Today</a>
+  </div>
+
+  <!-- Period toggle + stat tiles -->
+  <div class="anim-2">
+    <div class="period-toggle" style="display:inline-flex;margin-bottom:20px;">
+      <button class="period-btn active" onclick="setPeriod(7, this)">7 Days</button>
+      <button class="period-btn" onclick="setPeriod(14, this)">14 Days</button>
+      <button class="period-btn" onclick="setPeriod(30, this)">30 Days</button>
+    </div>
+  </div>
+
+  <!-- Stat tiles -->
+  <div class="stat-grid anim-3" id="statGrid">
+    <div class="stat-tile accent-sage">
+      <div class="stat-tile-label">Avg Water</div>
+      <div class="stat-tile-value" id="avgWater">—<span>L/day</span></div>
+      <div class="stat-tile-sub" id="waterSub">No data yet</div>
+    </div>
+    <div class="stat-tile accent-yellow">
+      <div class="stat-tile-label">Avg Steps</div>
+      <div class="stat-tile-value" id="avgSteps">—<span>steps</span></div>
+      <div class="stat-tile-sub" id="stepsSub">No data yet</div>
+    </div>
+    <div class="stat-tile accent-sage">
+      <div class="stat-tile-label">Avg Sleep</div>
+      <div class="stat-tile-value" id="avgSleep">—<span>hrs</span></div>
+      <div class="stat-tile-sub" id="sleepSub">No data yet</div>
+    </div>
+    <div class="stat-tile accent-yellow">
+      <div class="stat-tile-label">Avg Mood</div>
+      <div class="stat-tile-value" id="avgMood">—</div>
+      <div class="stat-tile-sub" id="moodSub">No data yet</div>
+    </div>
+    <div class="stat-tile accent-sage">
+      <div class="stat-tile-label">Avg Fast</div>
+      <div class="stat-tile-value" id="avgFast">—<span>hrs</span></div>
+      <div class="stat-tile-sub" id="fastSub">No data yet</div>
+    </div>
+    <div class="stat-tile accent-yellow">
+      <div class="stat-tile-label">Days Logged</div>
+      <div class="stat-tile-value" id="daysLogged">—</div>
+      <div class="stat-tile-sub" id="daysLoggedSub">in selected period</div>
+    </div>
+  </div>
+
+  <!-- Charts row 1: water + steps -->
+  <div class="chart-grid anim-4" style="margin-top:24px;">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <span class="chart-card-title">💧 Water Intake</span>
+        <span class="chart-card-period" id="waterPeriodLabel">Last 7 days</span>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="chartWater" height="200"></canvas>
+        <div id="emptyWater" class="empty-state" style="display:none;">
+          <div class="empty-state-icon">💧</div>
+          <p class="empty-state-text">Log some days to see your water trend.</p>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <span class="chart-card-title">👟 Daily Steps</span>
+        <span class="chart-card-period" id="stepsPeriodLabel">Last 7 days</span>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="chartSteps" height="200"></canvas>
+        <div id="emptySteps" class="empty-state" style="display:none;">
+          <div class="empty-state-icon">👟</div>
+          <p class="empty-state-text">Log some days to see your steps trend.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts row 2: mood + sleep -->
+  <div class="chart-grid anim-5" style="margin-top:20px;">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <span class="chart-card-title">😊 Mood Trend</span>
+        <span class="chart-card-period" id="moodPeriodLabel">Last 7 days</span>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="chartMood" height="200"></canvas>
+        <div id="emptyMood" class="empty-state" style="display:none;">
+          <div class="empty-state-icon">😊</div>
+          <p class="empty-state-text">Log some days to see your mood trend.</p>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <span class="chart-card-title">🌙 Sleep Quality</span>
+        <span class="chart-card-period" id="sleepPeriodLabel">Last 7 days</span>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="chartSleep" height="200"></canvas>
+        <div id="emptySleep" class="empty-state" style="display:none;">
+          <div class="empty-state-icon">🌙</div>
+          <p class="empty-state-text">Log some days to see your sleep trend.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts row 3: fasting + radar -->
+  <div class="chart-grid anim-6" style="margin-top:20px;">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <span class="chart-card-title">⏱ Fasting Window</span>
+        <span class="chart-card-period" id="fastPeriodLabel">Last 7 days</span>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="chartFasting" height="220"></canvas>
+        <div id="emptyFasting" class="empty-state" style="display:none;">
+          <div class="empty-state-icon">⏱</div>
+          <p class="empty-state-text">Log some days to see your fasting data.</p>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <span class="chart-card-title">🎯 Weekly Overview</span>
+        <span class="chart-card-period" id="radarPeriodLabel">All metrics</span>
+      </div>
+      <div class="chart-card-body" style="display:flex;justify-content:center;">
+        <canvas id="chartRadar" height="220" style="max-width:320px;"></canvas>
+        <div id="emptyRadar" class="empty-state" style="display:none;">
+          <div class="empty-state-icon">🎯</div>
+          <p class="empty-state-text">Log at least one day to see the overview.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weekly summary section -->
+  <div class="weekly-section anim-6">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+      <h2 class="section-title" style="margin-bottom:0;">🍽 <span>Meal Log</span> Summary</h2>
+      <div class="date-nav" style="margin-bottom:0;">
+        <span class="date-nav-label">From</span>
+        <input type="date" id="mealFrom">
+        <span class="date-nav-label">To</span>
+        <input type="date" id="mealTo">
+        <button class="btn btn-ghost" style="font-size:0.75rem;padding:6px 14px;" onclick="refreshMeals()">Apply</button>
+      </div>
+    </div>
+    <div class="card">
+      <div id="mealTable"><div class="empty-state"><div class="empty-state-icon">🍽</div><p class="empty-state-text">No meal data found. Start logging!</p></div></div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+
+
+<script>
+/* === DB === */
+/* ═══════════════════════════════════════════
+   WELLNESS TRACKER — Data Layer (db.js)
+   Stores one JSON "file" per day in localStorage
+   Keys: wellness_YYYY-MM-DD
+   Index key: wellness_index (array of date strings)
+═══════════════════════════════════════════ */
+
+const DB = (() => {
+
+  const PREFIX = 'wellness_';
+  const INDEX_KEY = 'wellness_index';
+
+  /* ── helpers ── */
+  function getIndex() {
+    try { return JSON.parse(localStorage.getItem(INDEX_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function setIndex(arr) {
+    localStorage.setItem(INDEX_KEY, JSON.stringify([...new Set(arr)].sort()));
+  }
+
+  function key(date) { return PREFIX + date; }
+
+  /* ── public API ── */
+
+  /** Save a day's entry. date = 'YYYY-MM-DD' */
+  function save(date, data) {
+    const entry = { ...data, date, savedAt: new Date().toISOString() };
+    localStorage.setItem(key(date), JSON.stringify(entry));
+    const idx = getIndex();
+    if (!idx.includes(date)) { idx.push(date); setIndex(idx); }
+    return entry;
+  }
+
+  /** Load a day's entry. Returns null if not found. */
+  function load(date) {
+    try { return JSON.parse(localStorage.getItem(key(date))); }
+    catch { return null; }
+  }
+
+  /** Delete a day's entry. */
+  function remove(date) {
+    localStorage.removeItem(key(date));
+    setIndex(getIndex().filter(d => d !== date));
+  }
+
+  /** Get all saved dates sorted ascending */
+  function allDates() { return getIndex(); }
+
+  /** Get all entries as array sorted by date ascending */
+  function allEntries() {
+    return getIndex().map(d => load(d)).filter(Boolean);
+  }
+
+  /** Get last N entries */
+  function recent(n = 7) {
+    const dates = getIndex().slice(-n);
+    return dates.map(d => load(d)).filter(Boolean);
+  }
+
+  /** Get entries between two dates inclusive */
+  function range(from, to) {
+    return getIndex()
+      .filter(d => d >= from && d <= to)
+      .map(d => load(d))
+      .filter(Boolean);
+  }
+
+  /** Calculate streak (consecutive days up to today) */
+  function streak() {
+    const dates = getIndex().slice().reverse();
+    if (!dates.length) return 0;
+    const today = todayStr();
+    let count = 0;
+    let cursor = today;
+    for (const d of dates) {
+      if (d === cursor) {
+        count++;
+        cursor = prevDay(cursor);
+      } else if (d < cursor) {
+        break;
+      }
+    }
+    return count;
+  }
+
+  /** Export all data as downloadable JSON */
+  function exportAll() {
+    const data = { exportedAt: new Date().toISOString(), entries: allEntries() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wellness-export-${todayStr()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /** Import from JSON file */
+  function importFromFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          const entries = Array.isArray(data) ? data : (data.entries || []);
+          entries.forEach(entry => { if (entry.date) save(entry.date, entry); });
+          resolve(entries.length);
+        } catch (err) { reject(err); }
+      };
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  }
+
+  /** Seed sample data for demo */
+  function seedSampleData() {
+    if (getIndex().length > 0) return; // don't overwrite
+    const moods = [2,3,3,4,3,4,5];
+    const steps = [6200,8400,5100,9300,7800,10200,8900];
+    const water = [1.5,2.0,1.25,1.75,2.0,1.5,2.0];
+    const sleep = [6.5,7,6,7.5,8,7,7.5];
+    const fasting = [14,16,13,16,15,14,16];
+    const meals = [
+      { breakfast:'Oats & berries', lunch:'Salad wrap', dinner:'Grilled salmon', snacks:'Apple' },
+      { breakfast:'Avocado toast', lunch:'Soup & bread', dinner:'Chicken stir-fry', snacks:'Nuts' },
+      { breakfast:'Yogurt & granola', lunch:'Caesar salad', dinner:'Pasta primavera', snacks:'Banana' },
+      { breakfast:'Smoothie bowl', lunch:'Rice bowl', dinner:'Lentil soup', snacks:'Dark chocolate' },
+      { breakfast:'Eggs & toast', lunch:'Turkey sandwich', dinner:'Tacos', snacks:'Grapes' },
+      { breakfast:'Overnight oats', lunch:'Buddha bowl', dinner:'Grilled chicken', snacks:'Hummus & veggies' },
+      { breakfast:'Pancakes', lunch:'Noodle soup', dinner:'Steak & vegetables', snacks:'Trail mix' },
+    ];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const date = d.toISOString().split('T')[0];
+      save(date, {
+        mood: moods[6-i],
+        steps: steps[6-i],
+        water: water[6-i],
+        sleep: sleep[6-i],
+        fastingHours: fasting[6-i],
+        fastStart: '12:00 pm',
+        fastEnd: '8:00 pm',
+        meals: meals[6-i],
+        supplements: ['Vitamin D', 'Omega 3'],
+        walkAfterBreakfast: true,
+        walkAfterLunch: false,
+        walkAfterDinner: true,
+        reflection: { wentWell: 'Stayed consistent with water intake.', improve: 'Sleep earlier.' },
+        gratitude: 'Grateful for a productive day.',
+      });
+    }
+  }
+
+  /* ── private utils ── */
+  function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+  function prevDay(dateStr) {
+    const d = new Date(dateStr); d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  }
+
+  return { save, load, remove, allDates, allEntries, recent, range, streak, exportAll, importFromFile, seedSampleData, todayStr };
+
+})();
+
+/* === CHARTS === */
+/* ═══════════════════════════════════════════
+   WELLNESS TRACKER — Charts (charts.js)
+   Requires Chart.js loaded before this file
+═══════════════════════════════════════════ */
+
+const Charts = (() => {
+
+  /* ── Palette ── */
+  const C = {
+    sage:       '#7aab8a',
+    sageDeep:   '#4e8060',
+    sagePale:   '#d6ead9',
+    sageFaint:  '#eef6f0',
+    yellow:     '#f5e97a',
+    yellowDeep: '#d4c244',
+    yellowPale: '#fdf8d0',
+    yellowMid:  '#f7ef9e',
+    stone:      '#6a7060',
+    ink:        '#1c2018',
+    line:       '#cdd8c4',
+  };
+
+  /* ── Global Chart.js defaults ── */
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+  Chart.defaults.font.weight = '300';
+  Chart.defaults.color = C.stone;
+  Chart.defaults.plugins.legend.display = false;
+  Chart.defaults.plugins.tooltip.backgroundColor = C.ink;
+  Chart.defaults.plugins.tooltip.titleFont = { family: "'Playfair Display', serif", size: 13 };
+  Chart.defaults.plugins.tooltip.bodyFont = { family: "'DM Sans', sans-serif", size: 12 };
+  Chart.defaults.plugins.tooltip.padding = 12;
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+  /* ── stored instances (for destroy/recreate) ── */
+  const instances = {};
+
+  function destroy(id) {
+    if (instances[id]) { instances[id].destroy(); delete instances[id]; }
+  }
+
+  /* ── shared grid style ── */
+  function gridOpts() {
+    return { color: C.line, drawBorder: false, lineWidth: 0.8 };
+  }
+
+  function tickOpts() {
+    return { color: C.stone, font: { size: 11 } };
+  }
+
+  /* ──────────────────────────────────────
+     1. WATER INTAKE — area line chart
+  ────────────────────────────────────── */
+  function renderWater(canvasId, entries) {
+    destroy(canvasId);
+    const labels = entries.map(e => fmtDate(e.date));
+    const values = entries.map(e => e.water || 0);
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 200);
+    grad.addColorStop(0, 'rgba(122,171,138,0.3)');
+    grad.addColorStop(1, 'rgba(122,171,138,0)');
+    instances[canvasId] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          borderColor: C.sageDeep,
+          backgroundColor: grad,
+          borderWidth: 2.5,
+          pointBackgroundColor: C.sageDeep,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: true,
+          tension: 0.4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: { grid: gridOpts(), ticks: { ...tickOpts(), callback: v => v + 'L' }, min: 0, max: 3, suggestedMax: 2.5 },
+          x: { grid: { display: false }, ticks: tickOpts() }
+        },
+        plugins: {
+          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} litres` } }
+        }
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────
+     2. STEPS — bar chart
+  ────────────────────────────────────── */
+  function renderSteps(canvasId, entries) {
+    destroy(canvasId);
+    const labels = entries.map(e => fmtDate(e.date));
+    const values = entries.map(e => e.steps || 0);
+    const goal = 8000;
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    instances[canvasId] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: values.map(v => v >= goal ? C.sageDeep : C.sage),
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: { grid: gridOpts(), ticks: { ...tickOpts(), callback: v => (v/1000).toFixed(0) + 'k' } },
+          x: { grid: { display: false }, ticks: tickOpts() }
+        },
+        plugins: {
+          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString()} steps` } },
+          annotation: {
+            annotations: {
+              goalLine: {
+                type: 'line', yMin: goal, yMax: goal,
+                borderColor: C.yellowDeep, borderWidth: 1.5, borderDash: [5, 4],
+                label: { display: true, content: 'Goal', position: 'end', font: { size: 10 }, color: C.yellowDeep, backgroundColor: 'transparent' }
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────
+     3. MOOD — line with emoji points
+  ────────────────────────────────────── */
+  function renderMood(canvasId, entries) {
+    destroy(canvasId);
+    const labels = entries.map(e => fmtDate(e.date));
+    const values = entries.map(e => e.mood || 0);
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 180);
+    grad.addColorStop(0, 'rgba(245,233,122,0.35)');
+    grad.addColorStop(1, 'rgba(245,233,122,0)');
+    instances[canvasId] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          borderColor: C.yellowDeep,
+          backgroundColor: grad,
+          borderWidth: 2.5,
+          pointBackgroundColor: C.yellowDeep,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: true,
+          tension: 0.4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            grid: gridOpts(), min: 1, max: 5,
+            ticks: { ...tickOpts(), stepSize: 1, callback: v => ['','😔','😐','🙂','😊','🌿'][v] || '' }
+          },
+          x: { grid: { display: false }, ticks: tickOpts() }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const labels = ['','Low','Okay','Good','Great','Thriving'];
+                return ` ${labels[ctx.parsed.y] || ctx.parsed.y}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────
+     4. SLEEP — bar chart
+  ────────────────────────────────────── */
+  function renderSleep(canvasId, entries) {
+    destroy(canvasId);
+    const labels = entries.map(e => fmtDate(e.date));
+    const values = entries.map(e => e.sleep || 0);
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    instances[canvasId] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: values.map(v => v >= 7 ? C.sageDeep : v >= 6 ? C.sage : '#e0a080'),
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: { grid: gridOpts(), min: 0, max: 12, ticks: { ...tickOpts(), callback: v => v + 'h' } },
+          x: { grid: { display: false }, ticks: tickOpts() }
+        },
+        plugins: {
+          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} hours` } }
+        }
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────
+     5. FASTING HOURS — horizontal bar
+  ────────────────────────────────────── */
+  function renderFasting(canvasId, entries) {
+    destroy(canvasId);
+    const labels = entries.map(e => fmtDate(e.date));
+    const values = entries.map(e => e.fastingHours || 0);
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    instances[canvasId] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: values.map(v => v >= 16 ? C.sageDeep : v >= 14 ? C.sage : C.sagePale),
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        indexAxis: 'y',
+        scales: {
+          x: { grid: gridOpts(), min: 0, max: 24, ticks: { ...tickOpts(), callback: v => v + 'h' } },
+          y: { grid: { display: false }, ticks: tickOpts() }
+        },
+        plugins: {
+          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} hours fasted` } }
+        }
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────
+     6. WEEKLY SUMMARY — radar chart
+  ────────────────────────────────────── */
+  function renderWeeklyRadar(canvasId, entries) {
+    destroy(canvasId);
+    if (!entries.length) return;
+    // Normalise each metric to 0–100
+    const avg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+    const waterScore   = Math.min(avg(entries.map(e => (e.water || 0) / 2)) * 100, 100);
+    const stepsScore   = Math.min(avg(entries.map(e => (e.steps || 0) / 10000)) * 100, 100);
+    const moodScore    = avg(entries.map(e => ((e.mood || 0) - 1) / 4)) * 100;
+    const sleepScore   = Math.min(avg(entries.map(e => (e.sleep || 0) / 8)) * 100, 100);
+    const fastScore    = Math.min(avg(entries.map(e => (e.fastingHours || 0) / 16)) * 100, 100);
+    const walkEntries  = entries.map(e => ((e.walkAfterBreakfast ? 1:0) + (e.walkAfterLunch ? 1:0) + (e.walkAfterDinner ? 1:0)) / 3);
+    const walkScore    = avg(walkEntries) * 100;
+
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    const grad = ctx.createRadialGradient(150,150,20,150,150,130);
+    grad.addColorStop(0, 'rgba(122,171,138,0.2)');
+    grad.addColorStop(1, 'rgba(122,171,138,0.05)');
+
+    instances[canvasId] = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Hydration', 'Steps', 'Mood', 'Sleep', 'Fasting', 'Walks'],
+        datasets: [{
+          data: [waterScore, stepsScore, moodScore, sleepScore, fastScore, walkScore],
+          borderColor: C.sageDeep,
+          backgroundColor: grad,
+          borderWidth: 2,
+          pointBackgroundColor: C.sageDeep,
+          pointRadius: 5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          r: {
+            min: 0, max: 100,
+            grid: { color: C.line },
+            angleLines: { color: C.line },
+            pointLabels: { font: { size: 11 }, color: C.stone },
+            ticks: { display: false },
+          }
+        }
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────
+     7. MEALS heatmap (days × meal types)
+  ────────────────────────────────────── */
+  function renderMealSummary(containerId, entries) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!entries.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🍽</div><p class="empty-state-text">No meal data yet.</p></div>';
+      return;
+    }
+    const mealTypes = ['breakfast','lunch','dinner','snacks'];
+    const mealLabels = ['☀️ Breakfast','🌿 Lunch','🌙 Dinner','🍎 Snacks'];
+    let html = `
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:0.75rem;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:8px 10px;color:var(--stone);font-weight:400;letter-spacing:0.08em;text-transform:uppercase;font-size:0.62rem;border-bottom:1px solid var(--line);">Date</th>
+            ${mealLabels.map(m => `<th style="text-align:left;padding:8px 10px;color:var(--stone);font-weight:400;letter-spacing:0.08em;text-transform:uppercase;font-size:0.62rem;border-bottom:1px solid var(--line);">${m}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    [...entries].reverse().forEach((entry, i) => {
+      const bg = i % 2 === 0 ? 'var(--sage-faint)' : 'var(--white)';
+      html += `<tr style="background:${bg}">`;
+      html += `<td style="padding:8px 10px;color:var(--sage-deep);font-weight:500;white-space:nowrap;">${fmtDateFull(entry.date)}</td>`;
+      mealTypes.forEach(type => {
+        const val = entry.meals?.[type] || '';
+        html += `<td style="padding:8px 10px;color:var(--ink-soft);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${val}">${val || '<span style="color:var(--line)">—</span>'}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+  }
+
+  /* ── utils ── */
+  function fmtDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function fmtDateFull(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  return { renderWater, renderSteps, renderMood, renderSleep, renderFasting, renderWeeklyRadar, renderMealSummary };
+
+})();
+
+  /* ── init ── */
+  // Clear any previously seeded sample data (one-time migration)
+  if (localStorage.getItem('wellness_seeded_cleared') !== '1') {
+    const idx = JSON.parse(localStorage.getItem('wellness_index') || '[]');
+    idx.forEach(d => localStorage.removeItem('wellness_' + d));
+    localStorage.removeItem('wellness_index');
+    localStorage.setItem('wellness_seeded_cleared', '1');
+  }
+
+  let currentPeriod = 7;
+
+  function init() {
+    // Hero date
+    document.getElementById('heroDate').textContent =
+      new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // Streak
+    document.getElementById('streakNum').textContent = DB.streak();
+
+    // Today logged?
+    const todayEntry = DB.load(DB.todayStr());
+    if (todayEntry) document.getElementById('todayBanner').style.display = 'flex';
+
+    // Meal date defaults
+    const today = DB.todayStr();
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 6);
+    document.getElementById('mealFrom').value = weekAgo.toISOString().split('T')[0];
+    document.getElementById('mealTo').value = today;
+
+    renderAll(7);
+    refreshMeals();
+  }
+
+  function setPeriod(n, btn) {
+    currentPeriod = n;
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderAll(n);
+  }
+
+  function renderAll(n) {
+    const entries = DB.recent(n);
+    const label = `Last ${n} days`;
+    ['water','steps','mood','sleep','fast'].forEach(id => {
+      const el = document.getElementById(id + 'PeriodLabel');
+      if (el) el.textContent = label;
+    });
+    document.getElementById('radarPeriodLabel').textContent = label;
+
+    updateStats(entries);
+
+    function showOrEmpty(hasData, chartId, emptyId, renderFn) {
+      const canvas = document.getElementById(chartId);
+      const empty = document.getElementById(emptyId);
+      if (hasData) {
+        canvas.style.display = 'block';
+        empty.style.display = 'none';
+        renderFn();
+      } else {
+        canvas.style.display = 'none';
+        empty.style.display = 'flex';
+      }
+    }
+
+    showOrEmpty(entries.length, 'chartWater', 'emptyWater', () => Charts.renderWater('chartWater', entries));
+    showOrEmpty(entries.length, 'chartSteps', 'emptySteps', () => Charts.renderSteps('chartSteps', entries));
+    showOrEmpty(entries.length, 'chartMood',  'emptyMood',  () => Charts.renderMood('chartMood', entries));
+    showOrEmpty(entries.length, 'chartSleep', 'emptySleep', () => Charts.renderSleep('chartSleep', entries));
+    showOrEmpty(entries.length, 'chartFasting','emptyFasting',() => Charts.renderFasting('chartFasting', entries));
+    showOrEmpty(entries.length, 'chartRadar', 'emptyRadar', () => Charts.renderWeeklyRadar('chartRadar', entries));
+  }
+
+  function updateStats(entries) {
+    if (!entries.length) {
+      ['avgWater','avgSteps','avgSleep','avgMood','avgFast','daysLogged'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '—';
+      });
+      ['waterSub','stepsSub','sleepSub','moodSub','fastSub'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = 'No data yet';
+      });
+      document.getElementById('daysLoggedSub').textContent = 'start logging!';
+      return;
+    }
+    document.getElementById('daysLoggedSub').textContent = 'in selected period';
+    const avg = (arr) => (arr.reduce((a,b)=>a+b,0)/arr.length);
+    const moodLabels = ['','Low','Okay','Good','Great','Thriving'];
+
+    const water = avg(entries.map(e=>e.water||0));
+    document.getElementById('avgWater').innerHTML = `${water.toFixed(1)}<span>L/day</span>`;
+    document.getElementById('waterSub').textContent = water >= 2 ? '✅ On target' : `${(2 - water).toFixed(1)}L below goal`;
+
+    const steps = avg(entries.map(e=>e.steps||0));
+    document.getElementById('avgSteps').innerHTML = `${Math.round(steps/1000*10)/10}<span>k/day</span>`;
+    document.getElementById('stepsSub').textContent = steps >= 8000 ? '✅ Goal reached' : `${Math.round(8000-steps).toLocaleString()} below goal`;
+
+    const sleep = avg(entries.map(e=>e.sleep||0));
+    document.getElementById('avgSleep').innerHTML = `${sleep.toFixed(1)}<span>hrs</span>`;
+    document.getElementById('sleepSub').textContent = sleep >= 7 ? '✅ Well rested' : 'Below recommended';
+
+    const mood = avg(entries.map(e=>e.mood||0));
+    document.getElementById('avgMood').innerHTML = `${mood.toFixed(1)}`;
+    document.getElementById('moodSub').textContent = moodLabels[Math.round(mood)] || '';
+
+    const fast = avg(entries.map(e=>e.fastingHours||0));
+    document.getElementById('avgFast').innerHTML = `${fast.toFixed(1)}<span>hrs</span>`;
+    document.getElementById('fastSub').textContent = fast >= 16 ? '✅ 16:8 achieved' : `${(16-fast).toFixed(1)}h below 16:8`;
+
+    document.getElementById('daysLogged').textContent = entries.length;
+  }
+
+  function refreshMeals() {
+    const from = document.getElementById('mealFrom').value;
+    const to = document.getElementById('mealTo').value;
+    const entries = DB.range(from, to);
+    Charts.renderMealSummary('mealTable', entries);
+  }
+
+  function handleExport() {
+    DB.exportAll();
+    showToast('✅ Data exported!', 'success');
+  }
+
+  function handleImport(input) {
+    const file = input.files[0];
+    if (!file) return;
+    DB.importFromFile(file).then(count => {
+      showToast(`✅ Imported ${count} entries`, 'success');
+      setTimeout(() => location.reload(), 800);
+    }).catch(() => showToast('❌ Import failed', 'error'));
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  init();
+</script>
+</body></html>
