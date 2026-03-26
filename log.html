@@ -1167,8 +1167,13 @@ canvas { display: block; }
 
   @media (max-width: 600px) {
     .form-grid { grid-template-columns: 1fr; }
-    .meal-row { grid-template-columns: 70px 1fr; }
-    .meal-row .field-group:last-child { display: none; }
+    .meal-row { grid-template-columns: 70px 1fr 1fr; gap: 6px; }
+    .meal-row .field-group:last-child { display: block; }
+  }
+
+  @media (max-width: 400px) {
+    .meal-row { grid-template-columns: 70px 1fr; row-gap: 6px; }
+    .meal-row .field-group:last-child { grid-column: 2 / 3; display: block; }
     .walk-grid { grid-template-columns: 1fr 1fr; }
     .sleep-grid { grid-template-columns: 1fr 1fr; }
     .fasting-grid { grid-template-columns: 1fr; }
